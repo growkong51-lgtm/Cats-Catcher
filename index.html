@@ -75,6 +75,9 @@ html[data-theme="black"],.sw[data-theme="black"]{--bg:#1a1326;--ink:#f1e9ff;--ca
 #themeBtn,#saveBtn,#musicBtn{width:44px;height:44px;border-radius:50%;border:1px solid var(--line);background:var(--card);font-size:1.3rem;cursor:pointer}
 .tb{display:flex;gap:8px}
 .toast{position:fixed;top:calc(16px + env(safe-area-inset-top,0px));left:50%;transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:10px 18px;border-radius:999px;font-weight:600;z-index:3000}
+.bk{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px;margin-bottom:12px;display:flex;gap:10px;align-items:center;justify-content:space-between}
+.bk span{font-size:.95rem}
+.bk .btn{flex:none;padding:10px 14px}
 </style>
 </head>
 <body>
@@ -99,7 +102,7 @@ html[data-theme="black"],.sw[data-theme="black"]{--bg:#1a1326;--ink:#f1e9ff;--ca
 <script>
 (function(){
 var $=function(s){return document.querySelector(s)};
-var cats=[],db=null,tab='list',lmap=null,watchId=null;
+var cats=[],db=null,tab='list',lmap=null,watchId=null,loaded=false;
 
 function openDB(){return new Promise(function(res){try{var r=indexedDB.open('cat-catcher',1);r.onupgradeneeded=function(){r.result.createObjectStore('cats',{keyPath:'id'})};r.onsuccess=function(){res(r.result)};r.onerror=function(){res(null)}}catch(e){res(null)}})}
 function lsAll(){try{return JSON.parse(sget('cc-ls')||'{}')}catch(e){return {}}}
@@ -120,11 +123,14 @@ function fmt(t){try{return new Date(t).toLocaleDateString(undefined,{month:'shor
 function mapsUrl(c){return 'https://www.google.com/maps?q='+c.lat+','+c.lng}
 
 function render(){
+  if(loaded)sset('cc-count',String(cats.length));
   $('#count').textContent=cats.length+(cats.length===1?' cat':' cats');
   $('#t1').setAttribute('aria-selected',tab==='list');$('#t2').setAttribute('aria-selected',tab==='map');
   if(lmap){try{lmap.remove()}catch(e){}lmap=null}var v=$('#view');v.innerHTML='';
   if(!cats.length){v.appendChild(el('div',{class:'empty'},[el('b',{text:'No cats yet'}),el('span',{text:'Tap Capture a cat when you spot one. Its photo and location are saved together.'})]));return}
   if(tab==='list'){
+    var since=Number(sget('cc-since'))||0,never=!sget('cc-lastbackup');
+    if(since>=5||(never&&cats.length>=3))v.appendChild(el('div',{class:'bk'},[el('span',{text:never?'Keep your cats safe: save a backup.':since+' new cats since your last backup.'}),el('button',{class:'btn p',text:'Save backup',on:{click:exportBackup}})]));
     var g=el('div',{class:'grid'});
     cats.slice().reverse().forEach(function(c){
       g.appendChild(el('button',{class:'cat',on:{click:function(){detail(c)}}},[
@@ -197,7 +203,7 @@ $('#file').addEventListener('change',function(){
   save.addEventListener('click',function(){
     if(!photo)return;stopLocate();
     var c={id:Date.now(),n:cats.length?Math.max.apply(0,cats.map(function(x){return x.n}))+1:1,name:name.value.trim()||'Unnamed cat',photo:photo,time:Date.now(),lat:loc.v?loc.v.lat:null,lng:loc.v?loc.v.lng:null,acc:loc.v?loc.v.acc:null};
-    put(c).then(function(ok){cats.push(c);if(ok){toast('Saved on this phone');sfx(720,'long')}else alert('This cat could NOT be stored on this phone and will disappear when you close the app. Tap the backup button (top right) for help.');close();tab='list';render()});
+    put(c).then(function(ok){cats.push(c);sset('cc-since',String((Number(sget('cc-since'))||0)+1));if(ok){toast('Saved on this phone');sfx(720,'long')}else alert('This cat could NOT be stored on this phone and will disappear when you close the app. Tap the backup button (top right) for help.');close();tab='list';render()});
   });
   open([img,name,status,el('div',{class:'row'},[el('button',{class:'btn',text:'Cancel',on:{click:close}}),save])]);
   shrink(f).then(function(d){photo=d;img.src=d}).catch(function(){status.textContent='Could not read that photo. Try again.'});
@@ -244,14 +250,16 @@ function exportBackup(){
   var blob=new Blob([JSON.stringify({app:'cat-catcher',v:1,cats:cats})],{type:'application/json'});
   var name='cat-catcher-backup.json',file=null;
   try{file=new File([blob],name,{type:'application/json'})}catch(e){}
-  if(file&&navigator.canShare&&navigator.canShare({files:[file]})){navigator.share({files:[file],title:'Cat Catcher backup'}).catch(function(){});return}
-  var a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;document.body.appendChild(a);a.click();setTimeout(function(){a.remove()},500);
+  if(file&&navigator.canShare&&navigator.canShare({files:[file]})){navigator.share({files:[file],title:'Cat Catcher backup'}).then(markBackup).catch(function(){});return}
+  var a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;document.body.appendChild(a);a.click();setTimeout(function(){a.remove()},500);markBackup();
 }
+function markBackup(){sset('cc-lastbackup',String(Date.now()));sset('cc-since','0');render();toast('Backup saved')}
 function backupSheet(){
   var info=el('p',{class:'meta',text:cats.length+(cats.length===1?' cat':' cats')+' saved on this phone. Storage: '+(db?'working':'limited')+'.'});
   if(navigator.storage&&navigator.storage.persisted)navigator.storage.persisted().then(function(p){info.textContent+=p?' Protected from automatic cleanup.':' Not protected from automatic cleanup, so keep a backup.'});
+  var lbt=Number(sget('cc-lastbackup')),lb=el('p',{class:'meta',text:'Last backup: '+(lbt?fmt(lbt):'never')});
   var note=el('p',{class:'meta',text:'On iPhone, the Safari tab and the Home Screen icon keep separate collections. Use only the Home Screen icon. To move cats between them, save a backup in one and restore it in the other.'});
-  open([el('h2',{text:'Your cats',style:'margin:4px 0 0'}),info,note,
+  open([el('h2',{text:'Your cats',style:'margin:4px 0 0'}),info,lb,note,
     el('div',{class:'row'},[el('button',{class:'btn p',text:'Save a backup file',on:{click:exportBackup}})]),
     el('div',{class:'row'},[el('button',{class:'btn',text:'Restore from backup',on:{click:function(){$('#restorefile').value='';$('#restorefile').click()}}})]),
     el('div',{class:'row'},[el('button',{class:'btn',text:'Meow sounds: '+(sget('cc-sfx')==='off'?'Off':'On'),on:{click:function(){sset('cc-sfx',sget('cc-sfx')==='off'?'on':'off');backupSheet()}}})]),
@@ -313,7 +321,7 @@ $('#musicBtn').addEventListener('click',function(){
   }else{song.pause();setMusic(false);toast('Meow song off')}
 });
 document.addEventListener('visibilitychange',function(){if(document.hidden&&musicOn){song.pause();setMusic(false)}});
-openDB().then(function(d){db=d;return loadAll()}).then(function(a){cats=a.sort(function(x,y){return x.id-y.id});render()});
+openDB().then(function(d){db=d;return loadAll()}).then(function(a){cats=a.sort(function(x,y){return x.id-y.id});if(!cats.length&&Number(sget('cc-count')||0)>0)setTimeout(function(){alert('Your saved cats were not found on this phone. If you saved a backup, tap the 💾 button and choose Restore from backup.')},700);loaded=true;render()});
 render();
 })();
 </script>
