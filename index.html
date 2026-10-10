@@ -106,7 +106,7 @@ h3.sec{margin:20px 0 10px;font-size:1.1rem}
 <script>
 (function(){
 var $=function(s){return document.querySelector(s)};
-var cats=[],db=null,tab='list',lmap=null,watchId=null,loaded=false,others=[],lastPull=0;
+var cats=[],db=null,tab='list',lmap=null,watchId=null,loaded=false,others=[],cloudAll=[],lastPull=0;
 
 function openDB(){return new Promise(function(res){try{var r=indexedDB.open('cat-catcher',1);r.onupgradeneeded=function(){r.result.createObjectStore('cats',{keyPath:'id'})};r.onsuccess=function(){res(r.result)};r.onerror=function(){res(null)}}catch(e){res(null)}})}
 function lsAll(){try{return JSON.parse(sget('cc-ls')||'{}')}catch(e){return {}}}
@@ -133,6 +133,7 @@ function render(){
   if(lmap){try{lmap.remove()}catch(e){}lmap=null}var v=$('#view');v.innerHTML='';
   if(!cats.length&&!others.length){v.appendChild(el('div',{class:'empty'},[el('b',{text:'No cats yet'}),el('span',{text:'Tap Capture a cat when you spot one. Its photo and location are saved together.'})]));return}
   if(tab==='list'){
+    if(!getAuth()&&cats.length)v.appendChild(el('div',{class:'bk'},[el('span',{text:'Sign in to keep your cats safe online.'}),el('button',{class:'btn p',text:'Sign in',on:{click:accountSheet}})]));
     var since=Number(sget('cc-since'))||0,never=!sget('cc-lastbackup');
     if(since>=5||(never&&cats.length>=3))v.appendChild(el('div',{class:'bk'},[el('span',{text:never?'Keep your cats safe: save a backup.':since+' new cats since your last backup.'}),el('button',{class:'btn p',text:'Save backup',on:{click:exportBackup}})]));
     var g=el('div',{class:'grid'});
@@ -189,7 +190,7 @@ function detail(c){sfx(520+(c.n%5)*60,['long','short','chirp','long','short'][c.
   else nodes.push(el('p',{class:'meta',text:'No location saved for this one.'}));
   var row=el('div',{class:'row'});
   if(c.lat!=null)row.appendChild(el('a',{class:'btn',href:mapsUrl(c),target:'_blank',rel:'noopener',text:'Open in Maps'}));
-  if(!c.owner||c.owner===myOwner())row.appendChild(el('button',{class:'btn d',text:'Delete',on:{click:function(){if(confirm('Delete '+c.name+'?')){cloudDelete(c);rem(c.id).then(function(){cats=cats.filter(function(x){return x.id!==c.id});close();render()})}}}}));
+  if(!c.owner||c.owner===myOwner())row.appendChild(el('button',{class:'btn d',text:'Delete',on:{click:function(){if(confirm('Delete '+c.name+'?')){cloudDelete(c);cloudDeleteAccount(c);rem(c.id).then(function(){cats=cats.filter(function(x){return x.id!==c.id});close();render()})}}}}));
   row.appendChild(el('button',{class:'btn',text:'Close',on:{click:close}}));
   nodes.push(row);open(nodes);
 }
@@ -223,7 +224,7 @@ $('#file').addEventListener('change',function(){
   save.addEventListener('click',function(){
     if(!photo)return;stopLocate();
     var c={id:Date.now(),n:cats.length?Math.max.apply(0,cats.map(function(x){return x.n}))+1:1,name:name.value.trim()||'Unnamed cat',photo:photo,time:Date.now(),lat:loc.v?loc.v.lat:null,lng:loc.v?loc.v.lng:null,acc:loc.v?loc.v.acc:null};
-    put(c).then(function(ok){cats.push(c);if(sget('cc-code'))setTimeout(syncMine,300);sset('cc-since',String((Number(sget('cc-since'))||0)+1));if(ok){toast('Saved on this phone');sfx(720,'long')}else alert('This cat could NOT be stored on this phone and will disappear when you close the app. Tap the backup button (top right) for help.');close();tab='list';render()});
+    put(c).then(function(ok){cats.push(c);setTimeout(syncAccount,300);if(sget('cc-code'))setTimeout(syncMine,300);sset('cc-since',String((Number(sget('cc-since'))||0)+1));if(ok){toast('Saved on this phone');sfx(720,'long')}else alert('This cat could NOT be stored on this phone and will disappear when you close the app. Tap the backup button (top right) for help.');close();tab='list';render()});
   });
   open([img,name,status,el('div',{class:'row'},[el('button',{class:'btn',text:'Cancel',on:{click:close}}),save])]);
   shrink(f).then(function(d){photo=d;img.src=d}).catch(function(){status.textContent='Could not read that photo. Try again.'});
@@ -277,11 +278,14 @@ function markBackup(){sset('cc-lastbackup',String(Date.now()));sset('cc-since','
 function backupSheet(){
   var info=el('p',{class:'meta',text:cats.length+(cats.length===1?' cat':' cats')+' saved on this phone. Storage: '+(db?'working':'limited')+'.'});
   if(navigator.storage&&navigator.storage.persisted)navigator.storage.persisted().then(function(p){info.textContent+=p?' Protected from automatic cleanup.':' Not protected from automatic cleanup, so keep a backup.'});
+  var pend=cats.filter(function(c){return !c.async}).length,au=getAuth(),ob=el('p',{class:'meta',text:au?('Signed in as '+au.email+'. '+(pend?pend+' of '+cats.length+' cats waiting to upload (needs internet).':'All '+cats.length+' cats are backed up to your account.')):'Not signed in, so your cats are only on this phone. Sign in to back them up.'});
   var lbt=Number(sget('cc-lastbackup')),lb=el('p',{class:'meta',text:'Last backup: '+(lbt?fmt(lbt):'never')});
   var note=el('p',{class:'meta',text:'On iPhone, the Safari tab and the Home Screen icon keep separate collections. Use only the Home Screen icon. To move cats between them, save a backup in one and restore it in the other.'});
-  open([el('h2',{text:'Your cats',style:'margin:4px 0 0'}),info,lb,note,
+  open([el('h2',{text:'Your cats',style:'margin:4px 0 0'}),info,ob,lb,note,
     el('div',{class:'row'},[el('button',{class:'btn p',text:'Save a backup file',on:{click:exportBackup}})]),
     el('div',{class:'row'},[el('button',{class:'btn',text:'Restore from backup',on:{click:function(){$('#restorefile').value='';$('#restorefile').click()}}})]),
+    el('div',{class:'row'},[el('button',{class:'btn p',text:getAuth()?'My account':'Sign in to back up',on:{click:accountSheet}})]),
+    el('div',{class:'row'},[el('button',{class:'btn',text:'Restore from an old backup key',on:{click:restorePrivateSheet}})]),
     el('div',{class:'row'},[el('button',{class:'btn',text:'Meow sounds: '+(sget('cc-sfx')==='off'?'Off':'On'),on:{click:function(){sset('cc-sfx',sget('cc-sfx')==='off'?'on':'off');backupSheet()}}})]),
     el('div',{class:'row'},[el('button',{class:'btn',text:'Close',on:{click:close}})])]);
 }
@@ -292,7 +296,7 @@ $('#restorefile').addEventListener('change',function(){
   r.onload=function(){try{
     var d=JSON.parse(r.result),a=d.cats||[],have={};cats.forEach(function(c){have[c.id]=1});
     var add=a.filter(function(c){return c&&c.id&&c.photo&&!have[c.id]}),p=Promise.resolve();
-    add.forEach(function(c){c.sync=false;p=p.then(function(){return put(c)}).then(function(){cats.push(c)})});
+    add.forEach(function(c){c.sync=false;c.psync=false;c.async=false;p=p.then(function(){return put(c)}).then(function(){cats.push(c)})});
     p.then(function(){cats.sort(function(x,y){return x.id-y.id});toast(add.length+' restored');close();render()});
   }catch(e){alert('That file is not a Cat Catcher backup.')}};
   r.readAsText(f);
@@ -335,7 +339,7 @@ $('.brand').addEventListener('click',function(){var ks=['long','short','chirp','
 
 var PID='cat-catcher-f4bda',KEY='AIzaSyD7H6TL_9P705CrmXQAxIIarCk9y7BEKYc',PAL=['#ff6b6b','#4dabf7','#51cf66','#cc5de8','#ffd43b','#ff922b'];
 function sdel(k){try{localStorage.removeItem(k)}catch(e){}}
-function myOwner(){var o=sget('cc-owner');if(!o){o=Math.random().toString(36).slice(2,10);sset('cc-owner',o)}return o}
+function myOwner(){var au=getAuth();if(au)return au.uid;var o=sget('cc-owner');if(!o){o=Math.random().toString(36).slice(2,10);sset('cc-owner',o)}return o}
 function myName(){return sget('cc-myname')||'Me'}
 function fsBase(code){return 'https://firestore.googleapis.com/v1/projects/'+PID+'/databases/(default)/documents/groups/'+(code||sget('cc-code'))+'/cats'}
 function ownerColor(c){
@@ -345,7 +349,10 @@ function ownerColor(c){
 }
 function makeThumb(src){return new Promise(function(res,rej){
   var im=new Image();
-  im.onload=function(){var m=360,k=Math.min(1,m/Math.max(im.width,im.height)),cv=document.createElement('canvas');cv.width=Math.round(im.width*k);cv.height=Math.round(im.height*k);cv.getContext('2d').drawImage(im,0,0,cv.width,cv.height);res(cv.toDataURL('image/jpeg',0.7))};
+  im.onload=function(){
+    function enc(m,q){var k=Math.min(1,m/Math.max(im.width,im.height)),cv=document.createElement('canvas');cv.width=Math.round(im.width*k);cv.height=Math.round(im.height*k);cv.getContext('2d').drawImage(im,0,0,cv.width,cv.height);return cv.toDataURL('image/jpeg',q)}
+    var out=enc(600,0.65);if(out.length>140000)out=enc(400,0.6);res(out);
+  };
   im.onerror=rej;im.src=src})}
 function toFields(c,thumb){
   var num=function(v,int){return v==null?{nullValue:null}:(int?{integerValue:String(Math.round(v))}:{doubleValue:v})};
@@ -358,7 +365,7 @@ function fromDoc(d){
 }
 function pushCat(c){
   return makeThumb(c.photo).then(function(t){
-    return fetch(fsBase()+'/'+myOwner()+'-'+c.id+'?key='+KEY,{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({fields:toFields(c,t)})});
+    return authedFetch(fsBase()+'/'+myOwner()+'-'+c.id+'?key='+KEY,{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({fields:toFields(c,t)})});
   }).then(function(r){if(!r.ok)throw new Error('error '+r.status);c.sync=true;return put(c)});
 }
 function syncMine(){
@@ -371,19 +378,19 @@ function pullOthers(quiet){
   if(!sget('cc-code'))return Promise.resolve();
   var all=[];
   function page(tok){
-    return fetch(fsBase()+'?pageSize=300&key='+KEY+(tok?'&pageToken='+encodeURIComponent(tok):'')).then(function(r){if(!r.ok)throw new Error('error '+r.status);return r.json()}).then(function(j){
+    return authedFetch(fsBase()+'?pageSize=300&key='+KEY+(tok?'&pageToken='+encodeURIComponent(tok):'')).then(function(r){if(!r.ok)throw new Error('error '+r.status);return r.json()}).then(function(j){
       (j.documents||[]).forEach(function(d){all.push(fromDoc(d))});
       if(j.nextPageToken)return page(j.nextPageToken);
     });
   }
   return page().then(function(){
-    others=all.filter(function(c){return c.owner&&c.owner!==myOwner()});lastPull=Date.now();render();
+    cloudAll=all.slice();others=all.filter(function(c){return c.owner&&c.owner!==myOwner()});lastPull=Date.now();render();
     if(!quiet)toast('Up to date');
   }).catch(function(e){if(!quiet)toast('Could not reach the shared map ('+(e&&e.message||'offline')+')')});
 }
 function cloudDelete(c,code){
   var cd=code||sget('cc-code');if(!cd)return Promise.resolve();
-  return fetch(fsBase(cd)+'/'+myOwner()+'-'+c.id+'?key='+KEY,{method:'DELETE'}).catch(function(){});
+  return authedFetch(fsBase(cd)+'/'+myOwner()+'-'+c.id+'?key='+KEY,{method:'DELETE'}).catch(function(){});
 }
 function genCode(){
   var A='ABCDEFGHJKMNPQRSTUVWXYZ23456789',b=new Uint32Array(6),o='';
@@ -392,6 +399,7 @@ function genCode(){
   return o;
 }
 function joinGroup(code,name,isNew){
+  if(!getAuth()){toast('Sign in first');accountSheet();return}
   sset('cc-code',code);sset('cc-myname',name);myOwner();
   cats.forEach(function(c){c.sync=false;put(c)});
   togetherSheet();toast('Syncing your cats...');
@@ -448,8 +456,203 @@ function togetherSheet(){
     el('div',{class:'row'},[el('button',{class:'btn d',text:'Leave and remove my cats',on:{click:function(){if(confirm('Remove your cats from the shared map and leave?'))leaveGroup(true)}}})]),
     el('div',{class:'row'},[el('button',{class:'btn',text:'Close',on:{click:close}})])]);
 }
+
+
+var asyncing=false;
+function getAuth(){try{return JSON.parse(sget('cc-auth')||'null')}catch(e){return null}}
+function setAuth(a){if(a)sset('cc-auth',JSON.stringify(a));else sdel('cc-auth')}
+function authErr(m){
+  var t=String(m||'');
+  if(/EMAIL_EXISTS/.test(t))return 'That email already has an account. Tap Sign in instead.';
+  if(/INVALID_LOGIN_CREDENTIALS|INVALID_PASSWORD|EMAIL_NOT_FOUND/.test(t))return 'Wrong email or password.';
+  if(/WEAK_PASSWORD/.test(t))return 'The password needs at least 6 characters.';
+  if(/INVALID_EMAIL|MISSING_EMAIL/.test(t))return 'That email does not look right.';
+  if(/TOO_MANY_ATTEMPTS/.test(t))return 'Too many tries. Wait a few minutes and try again.';
+  if(/OPERATION_NOT_ALLOWED/.test(t))return 'Email sign-in is not turned on in Firebase yet.';
+  return 'Could not connect ('+t+')';
+}
+function authPost(path,body){
+  return fetch('https://identitytoolkit.googleapis.com/v1/accounts:'+path+'?key='+KEY,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)}).then(function(r){return r.json().then(function(j){if(!r.ok)throw new Error((j.error&&j.error.message)||('error '+r.status));return j})});
+}
+function saveAuth(j){setAuth({uid:j.localId,email:j.email,idToken:j.idToken,refreshToken:j.refreshToken,exp:Date.now()+Number(j.expiresIn||3600)*1000})}
+function getToken(){
+  var a=getAuth();if(!a)return Promise.reject(new Error('not signed in'));
+  if(a.exp-60000>Date.now())return Promise.resolve(a.idToken);
+  return fetch('https://securetoken.googleapis.com/v1/token?key='+KEY,{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:'grant_type=refresh_token&refresh_token='+encodeURIComponent(a.refreshToken)}).then(function(r){return r.json().then(function(j){
+    if(!r.ok)throw new Error((j.error&&j.error.message)||'refresh failed');
+    a.idToken=j.id_token;a.refreshToken=j.refresh_token||a.refreshToken;a.exp=Date.now()+Number(j.expires_in||3600)*1000;setAuth(a);return a.idToken;
+  })});
+}
+function authedFetch(url,opts){return getToken().then(function(t){opts=opts||{};opts.headers=Object.assign({},opts.headers,{Authorization:'Bearer '+t});return fetch(url,opts)})}
+function aBase(){return 'https://firestore.googleapis.com/v1/projects/'+PID+'/databases/(default)/documents/users/'+getAuth().uid+'/cats'}
+function pushAccount(c){
+  return makeThumb(c.photo).then(function(t){
+    return authedFetch(aBase()+'/'+c.id+'?key='+KEY,{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({fields:toFields(c,t)})});
+  }).then(function(r){if(!r.ok)throw new Error('error '+r.status);c.async=true;return put(c)});
+}
+function pullAccount(){
+  if(!getAuth())return Promise.resolve();
+  var all=[];
+  function page(tok){
+    return authedFetch(aBase()+'?pageSize=300&key='+KEY+(tok?'&pageToken='+encodeURIComponent(tok):'')).then(function(r){if(!r.ok)throw new Error('error '+r.status);return r.json()}).then(function(j){
+      (j.documents||[]).forEach(function(d){all.push(fromDoc(d))});
+      if(j.nextPageToken)return page(j.nextPageToken);
+    });
+  }
+  return page().then(function(){
+    var have={},rid={},p=Promise.resolve();
+    cats.forEach(function(c){have[c.id]=1});
+    all.forEach(function(r){
+      var id=Number(r.id);if(!id)return;rid[id]=1;if(have[id])return;
+      var c={id:id,n:r.n,name:r.name,photo:r.photo,time:r.time,lat:r.lat,lng:r.lng,acc:r.acc,sync:false,async:true};
+      p=p.then(function(){return put(c)}).then(function(){cats.push(c)});
+    });
+    cats.filter(function(c){return c.async&&!rid[c.id]}).forEach(function(c){p=p.then(function(){return rem(c.id)})});
+    return p.then(function(){cats=cats.filter(function(c){return !(c.async&&!rid[c.id])});cats.sort(function(x,y){return x.id-y.id});render()});
+  }).catch(function(){});
+}
+function syncAccount(){
+  if(!getAuth()||asyncing)return Promise.resolve();
+  asyncing=true;
+  var p=Promise.resolve();
+  cats.filter(function(c){return !c.async}).forEach(function(c){p=p.then(function(){return pushAccount(c)}).catch(function(){})});
+  return p.then(pullAccount).then(function(){asyncing=false},function(){asyncing=false});
+}
+function cloudDeleteAccount(c){if(!getAuth())return Promise.resolve();return authedFetch(aBase()+'/'+c.id+'?key='+KEY,{method:'DELETE'}).catch(function(){})}
+function onSignedIn(){
+  myOwner();
+  if(sget('cc-code'))cats.forEach(function(c){c.sync=false;put(c)});
+  syncAccount().then(function(){toast('Your cats are backed up');render()});
+  if(sget('cc-code'))syncMine();
+  render();
+}
+function clearLocal(){
+  cats=[];others=[];cloudAll=[];sdel('cc-ls');sdel('cc-code');sset('cc-count','0');
+  if(db){try{db.transaction('cats','readwrite').objectStore('cats').clear()}catch(e){}}
+}
+function accountSheet(){
+  var a=getAuth();
+  if(a){
+    var pend=cats.filter(function(c){return !c.async}).length;
+    open([el('h2',{text:'My account',style:'margin:4px 0 0'}),
+      el('p',{class:'meta',text:'Signed in as '+a.email}),
+      el('p',{class:'meta',text:pend?pend+' of '+cats.length+' cats are waiting to upload (needs internet).':'All '+cats.length+' cats are backed up to your account.'}),
+      el('div',{class:'row'},[el('button',{class:'btn p',text:'Sync now',on:{click:function(){toast('Syncing...');syncAccount().then(function(){toast('Up to date');accountSheet()})}}})]),
+      el('div',{class:'row'},[el('button',{class:'btn d',text:'Sign out',on:{click:function(){
+        var n=cats.filter(function(c){return !c.async}).length;
+        if(confirm((n?n+' cats have not uploaded yet and would be lost. ':'')+'Sign out? Your cats stay safe in your account and come back when you sign in again.')){setAuth(null);clearLocal();close();render();toast('Signed out');setTimeout(accountSheet,500)}}}})]),
+      el('div',{class:'row'},[el('button',{class:'btn',text:'Close',on:{click:close}})])]);
+    return;
+  }
+  var em=el('input',{type:'email',placeholder:'Email',autocomplete:'email',autocapitalize:'none','aria-label':'Email'});
+  var pw=el('input',{type:'password',placeholder:'Password (6+ characters)',autocomplete:'current-password','aria-label':'Password'});
+  var msg=el('p',{class:'meta',text:''});
+  function creds(){var e=em.value.trim().toLowerCase(),p=pw.value;if(!e||!p){msg.textContent='Enter your email and password.';return null}return {email:e,password:p,returnSecureToken:true}}
+  function go(path){var b=creds();if(!b)return;msg.textContent='One moment...';authPost(path,b).then(function(j){saveAuth(j);close();toast('Signed in');onSignedIn()}).catch(function(e){msg.textContent=authErr(e.message)})}
+  open([el('h2',{text:'Sign in to keep your cats safe',style:'margin:4px 0 0'}),
+    el('p',{class:'meta',text:'Your cats are saved to your account, so they come back even if you delete the app or get a new phone. Use the same email and password on any phone.'}),
+    em,pw,msg,
+    el('div',{class:'row'},[el('button',{class:'btn p',text:'Sign in',on:{click:function(){go('signInWithPassword')}}}),el('button',{class:'btn',text:'Create account',on:{click:function(){go('signUp')}}})]),
+    el('div',{class:'row'},[el('button',{class:'btn',text:'Forgot password?',on:{click:function(){
+      var e=em.value.trim().toLowerCase();if(!e){msg.textContent='Type your email first, then tap Forgot password.';return}
+      authPost('sendOobCode',{requestType:'PASSWORD_RESET',email:e}).then(function(){msg.textContent='Reset link sent. Check your inbox and spam folder.'}).catch(function(x){msg.textContent=authErr(x.message)})}}})]),
+    el('div',{class:'row'},[el('button',{class:'btn',text:'Not now',on:{click:close}})])]);
+}
+var psyncing=false;
+function genKey(){
+  var A='abcdefghijkmnpqrstuvwxyz23456789',b=new Uint32Array(12),o='';
+  (window.crypto||window.msCrypto).getRandomValues(b);
+  for(var i=0;i<12;i++)o+=A[b[i]%A.length];
+  return o;
+}
+function myKey(){var k=sget('cc-private');if(!k||!/^[a-z0-9]{12}$/.test(k)){k=genKey();sset('cc-private',k)}return k}
+function fmtKey(k){return k.replace(/(.{4})(?=.)/g,'$1-')}
+function pBase(key){return 'https://firestore.googleapis.com/v1/projects/'+PID+'/databases/(default)/documents/private/'+(key||myKey())+'/cats'}
+function pushPrivate(c){
+  return makeThumb(c.photo).then(function(t){
+    return fetch(pBase()+'/'+c.id+'?key='+KEY,{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({fields:toFields(c,t)})});
+  }).then(function(r){if(!r.ok)throw new Error('error '+r.status);c.psync=true;return put(c)});
+}
+function syncPrivate(){
+  if(psyncing)return Promise.resolve();
+  var todo=cats.filter(function(c){return !c.psync});
+  if(!todo.length)return Promise.resolve();
+  psyncing=true;
+  var p=Promise.resolve();
+  todo.forEach(function(c){p=p.then(function(){return pushPrivate(c)}).catch(function(){})});
+  return p.then(function(){psyncing=false},function(){psyncing=false});
+}
+function cloudDeletePrivate(c){return fetch(pBase()+'/'+c.id+'?key='+KEY,{method:'DELETE'}).catch(function(){})}
+function keySheet(){
+  sset('cc-keyseen','1');
+  var k=fmtKey(myKey());
+  open([el('h2',{text:'Your online backup key',style:'margin:4px 0 0'}),
+    el('p',{class:'meta',text:'Every cat you capture is now saved online automatically, whether or not you share with a partner. Save this key somewhere safe, like Notes or a message to yourself. If this phone\'s data is ever lost, the key brings your cats back. Keep it private.'}),
+    el('div',{class:'code',text:k,style:'font-size:1.5rem;letter-spacing:.08em'}),
+    el('div',{class:'row'},[
+      el('button',{class:'btn p',text:'Share key',on:{click:function(){if(navigator.share)navigator.share({text:'My Cat Catcher backup key: '+k}).catch(function(){});else copyCode(k)}}}),
+      el('button',{class:'btn',text:'Copy key',on:{click:function(){copyCode(k)}}})]),
+    el('div',{class:'row'},[el('button',{class:'btn',text:'Done',on:{click:close}})])]);
+}
+function restorePrivateSheet(){
+  var inp=el('input',{type:'text',placeholder:'abcd-efgh-ijkl',autocapitalize:'none',autocomplete:'off','aria-label':'Backup key'});
+  function go(){
+    var key=inp.value.toLowerCase().replace(/[^a-z0-9]/g,'');
+    if(key.length!==12){toast('The key has 12 letters and numbers');return}
+    toast('Looking online...');
+    var all=[];
+    function page(tok){
+      return fetch(pBase(key)+'?pageSize=300&key='+KEY+(tok?'&pageToken='+encodeURIComponent(tok):'')).then(function(r){if(!r.ok)throw new Error('error '+r.status);return r.json()}).then(function(j){
+        (j.documents||[]).forEach(function(d){all.push(fromDoc(d))});
+        if(j.nextPageToken)return page(j.nextPageToken);
+      });
+    }
+    page().then(function(){
+      if(!all.length){toast('No cats found for that key');return}
+      var have={};cats.forEach(function(c){have[c.id]=1});
+      sset('cc-private',key);
+      var p=Promise.resolve(),n=0;
+      all.forEach(function(r){
+        var id=Number(r.id);if(!id||have[id])return;
+        var c={id:id,n:r.n,name:r.name,photo:r.photo,time:r.time,lat:r.lat,lng:r.lng,acc:r.acc,sync:false,psync:true};
+        n++;p=p.then(function(){return put(c)}).then(function(){cats.push(c)});
+      });
+      return p.then(function(){cats.sort(function(x,y){return x.id-y.id});close();render();toast(n+(n===1?' cat restored':' cats restored'))});
+    }).catch(function(e){toast('Could not restore ('+(e&&e.message||'offline')+')')});
+  }
+  open([el('h2',{text:'Restore from online backup',style:'margin:4px 0 0'}),
+    el('p',{class:'meta',text:'Type the backup key you saved. Your cats come back as the online copies, which are slightly smaller than the originals.'}),
+    inp,
+    el('div',{class:'row'},[el('button',{class:'btn p',text:'Restore my cats',on:{click:go}})]),
+    el('div',{class:'row'},[el('button',{class:'btn',text:'Back',on:{click:backupSheet}})])]);
+}
+function restoreSheet(){
+  toast('Looking online...');
+  pullOthers(true).then(function(){
+    var by={};
+    cloudAll.forEach(function(c){var g=by[c.owner]||(by[c.owner]={name:c.ownerName||'Unknown',list:[]});g.list.push(c)});
+    var nodes=[el('h2',{text:'Restore from the cloud',style:'margin:4px 0 0'}),el('p',{class:'meta',text:'Pick your name to bring your cats back to this phone. Photos come back as the online copies, which are a bit smaller.'})];
+    var keys=Object.keys(by);
+    keys.forEach(function(o){var g=by[o];nodes.push(el('div',{class:'row'},[el('button',{class:'btn',text:g.name+' ('+g.list.length+(g.list.length===1?' cat)':' cats)'),on:{click:function(){importOwner(o,g)}}})]))});
+    if(!keys.length)nodes.push(el('p',{class:'meta',text:'No cats found online for this code yet.'}));
+    nodes.push(el('div',{class:'row'},[el('button',{class:'btn',text:'Back',on:{click:togetherSheet}})]));
+    open(nodes);
+  });
+}
+function importOwner(owner,g){
+  var have={};cats.forEach(function(c){have[c.id]=1});
+  sset('cc-owner',owner);sset('cc-myname',g.name);
+  var p=Promise.resolve(),n=0;
+  g.list.forEach(function(r){
+    var id=Number(String(r.id).split('-').pop());
+    if(!id||have[id])return;
+    var c={id:id,n:r.n,name:r.name,photo:r.photo,time:r.time,lat:r.lat,lng:r.lng,acc:r.acc,sync:true};
+    n++;p=p.then(function(){return put(c)}).then(function(){cats.push(c)});
+  });
+  p.then(function(){cats.sort(function(x,y){return x.id-y.id});others=others.filter(function(o){return o.owner!==owner});close();render();toast(n+(n===1?' cat restored':' cats restored'))});
+}
 $('#coupleBtn').addEventListener('click',togetherSheet);
-document.addEventListener('visibilitychange',function(){if(!document.hidden&&sget('cc-code')&&Date.now()-lastPull>60000)syncMine()});
+document.addEventListener('visibilitychange',function(){if(!document.hidden){syncAccount();if(sget('cc-code')&&Date.now()-lastPull>60000)syncMine()}});
 setInterval(function(){if(!document.hidden&&sget('cc-code'))pullOthers(true)},300000);
 var song=$('#song');
 function setMusic(on){musicOn=on;var mb=$('#musicBtn');mb.textContent=on?'🎵':'🔇';mb.setAttribute('aria-pressed',String(on))}
@@ -460,7 +663,7 @@ $('#musicBtn').addEventListener('click',function(){
   }else{song.pause();setMusic(false);toast('Meow song off')}
 });
 document.addEventListener('visibilitychange',function(){if(document.hidden&&musicOn){song.pause();setMusic(false)}});
-openDB().then(function(d){db=d;return loadAll()}).then(function(a){cats=a.sort(function(x,y){return x.id-y.id});if(!cats.length&&Number(sget('cc-count')||0)>0)setTimeout(function(){alert('Your saved cats were not found on this phone. If you saved a backup, tap the 💾 button and choose Restore from backup.')},700);loaded=true;render();if(sget('cc-code'))syncMine()});
+openDB().then(function(d){db=d;return loadAll()}).then(function(a){cats=a.sort(function(x,y){return x.id-y.id});if(!cats.length&&Number(sget('cc-count')||0)>0)setTimeout(function(){alert('Your saved cats were not found on this phone. If you saved a backup, tap the 💾 button and choose Restore from backup.')},700);loaded=true;render();syncAccount();if(sget('cc-code'))syncMine();if(!getAuth())setTimeout(accountSheet,1000)});
 render();
 })();
 </script>
