@@ -396,8 +396,7 @@ function joinGroup(code,name,isNew){
   cats.forEach(function(c){c.sync=false;put(c)});
   togetherSheet();toast('Syncing your cats...');
   syncMine().then(function(){
-    if(!isNew&&!others.length)alert('You joined, but there are no cats from anyone else yet. If you expected some, double-check the code.');
-    else toast('Synced');
+    toast(!isNew&&!others.length?'Joined! Cats show up here when someone captures one.':'Synced');
     render();
   });
 }
