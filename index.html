@@ -72,14 +72,14 @@ html[data-theme="fish"],.sw[data-theme="fish"]{--bg:#d9f2f0;--ink:#0f3d47;--card
 html[data-theme="yarn"],.sw[data-theme="yarn"]{--bg:#fde7ef;--ink:#4a1d33;--card:#fff6f9;--accent:#d6457f;--onaccent:#fff;--mute:#8a5a70;--line:#f3c9d9;--bgimg:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='130' height='130'%3E%3Cg fill='%23d6457f' fill-opacity='.26'%3E%3Cg transform='translate%2834 36%29'%3E%3Ccircle r='15'/%3E%3Cpath d='M-12 -6Q0 -14 12 -4M-14 4Q0 -6 14 6M-8 12Q2 4 10 12' stroke='%23fde7ef' stroke-width='1.6' fill='none' stroke-opacity='.8'/%3E%3Cpath d='M12 10Q30 18 24 34' stroke='%23d6457f' stroke-opacity='.3' stroke-width='2.5' fill='none' stroke-linecap='round'/%3E%3C/g%3E%3Cg transform='translate%2898 96%29 scale%28.8%29'%3E%3Ccircle r='15'/%3E%3Cpath d='M-12 -6Q0 -14 12 -4M-14 4Q0 -6 14 6M-8 12Q2 4 10 12' stroke='%23fde7ef' stroke-width='1.6' fill='none' stroke-opacity='.8'/%3E%3Cpath d='M12 10Q30 18 24 34' stroke='%23d6457f' stroke-opacity='.3' stroke-width='2.5' fill='none' stroke-linecap='round'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")}
 html[data-theme="tabby"],.sw[data-theme="tabby"]{--bg:#f6c27a;--ink:#4a2508;--card:#fff4e2;--accent:#b4440f;--onaccent:#fff;--mute:#7a4a22;--line:#e8b277;--bgimg:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='80' fill='none' stroke='%23c46a1e' stroke-opacity='.32' stroke-width='7' stroke-linecap='round'%3E%3Cpath d='M-5 12Q20 0 40 12T85 12'/%3E%3Cpath d='M-5 40Q20 28 40 40T85 40'/%3E%3Cpath d='M-5 68Q20 56 40 68T85 68'/%3E%3C/svg%3E")}
 html[data-theme="black"],.sw[data-theme="black"]{--bg:#1a1326;--ink:#f1e9ff;--card:#2a2040;--accent:#ffd24a;--onaccent:#241a00;--mute:#b3a3d6;--line:#3b2f58;--bgimg:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cg transform='translate%2836 38%29 scale%281.3%29'%3E%3Cpath d='M-16 4L-14 -18L-4 -10Q0 -11 4 -10L14 -18L16 4Q16 18 0 18Q-16 18 -16 4Z' fill='%233a2c58'/%3E%3Cellipse cx='-6' cy='4' rx='2.4' ry='3.4' fill='%23ffd24a' fill-opacity='.85'/%3E%3Cellipse cx='6' cy='4' rx='2.4' ry='3.4' fill='%23ffd24a' fill-opacity='.85'/%3E%3C/g%3E%3Cg transform='translate%28106 106%29'%3E%3Cpath d='M-16 4L-14 -18L-4 -10Q0 -11 4 -10L14 -18L16 4Q16 18 0 18Q-16 18 -16 4Z' fill='%233a2c58'/%3E%3Cellipse cx='-6' cy='4' rx='2.4' ry='3.4' fill='%23ffd24a' fill-opacity='.85'/%3E%3Cellipse cx='6' cy='4' rx='2.4' ry='3.4' fill='%23ffd24a' fill-opacity='.85'/%3E%3C/g%3E%3C/svg%3E")}
-#themeBtn,#saveBtn{width:44px;height:44px;border-radius:50%;border:1px solid var(--line);background:var(--card);font-size:1.3rem;cursor:pointer}
+#themeBtn,#saveBtn,#musicBtn{width:44px;height:44px;border-radius:50%;border:1px solid var(--line);background:var(--card);font-size:1.3rem;cursor:pointer}
 .tb{display:flex;gap:8px}
 .toast{position:fixed;top:calc(16px + env(safe-area-inset-top,0px));left:50%;transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:10px 18px;border-radius:999px;font-weight:600;z-index:3000}
 </style>
 </head>
 <body>
 <main>
-  <div class="top"><span class="brand">🐾 Cat Catcher</span><span class="tb"><button id="saveBtn" aria-label="Backup and storage">💾</button><button id="themeBtn" aria-label="Change background">🎨</button></span></div>
+  <div class="top"><span class="brand">🐾 Cat Catcher</span><span class="tb"><button id="musicBtn" aria-label="Cat song" aria-pressed="false">🔇</button><button id="saveBtn" aria-label="Backup and storage">💾</button><button id="themeBtn" aria-label="Change background">🎨</button></span></div>
   <h1 id="count">0 cats</h1>
   <p class="sub">Every cat you've found in town.</p>
   <div class="tabs" role="tablist">
@@ -92,6 +92,7 @@ html[data-theme="black"],.sw[data-theme="black"]{--bg:#1a1326;--ink:#f1e9ff;--ca
 <input type="file" id="file" accept="image/*" capture="environment" hidden>
 <input type="file" id="bgfile" accept="image/*" hidden>
 <input type="file" id="restorefile" accept="application/json,.json" hidden>
+<audio id="song" src="meow-loop.mp3" loop preload="none" playsinline></audio>
 <div class="sheet" id="sheet"><div class="panel" id="panel"></div></div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
@@ -152,10 +153,10 @@ function mapView(v){
 }
 
 function open(nodes){var p=$('#panel');p.innerHTML='';nodes.forEach(function(n){p.appendChild(n)});$('#sheet').classList.add('on')}
-function close(){stopLocate();$('#sheet').classList.remove('on')}
+function close(){stopLocate();$('#sheet').classList.remove('on');$('#panel').innerHTML=''}
 $('#sheet').addEventListener('click',function(e){if(e.target.id==='sheet')close()});
 
-function detail(c){
+function detail(c){sfx(520+(c.n%5)*60,['long','short','chirp','long','short'][c.n%5]);
   var nodes=[el('img',{src:c.photo,alt:c.name}),el('h2',{text:c.name,style:'margin:12px 0 0'}),
     el('p',{class:'meta',text:'Cat #'+c.n+' · caught '+fmt(c.time)})];
   if(c.lat!=null)nodes.push(el('p',{class:'meta',text:'Spot: '+c.lat.toFixed(5)+', '+c.lng.toFixed(5)+(c.acc?' (within about '+c.acc+' m)':'')}));
@@ -196,7 +197,7 @@ $('#file').addEventListener('change',function(){
   save.addEventListener('click',function(){
     if(!photo)return;stopLocate();
     var c={id:Date.now(),n:cats.length?Math.max.apply(0,cats.map(function(x){return x.n}))+1:1,name:name.value.trim()||'Unnamed cat',photo:photo,time:Date.now(),lat:loc.v?loc.v.lat:null,lng:loc.v?loc.v.lng:null,acc:loc.v?loc.v.acc:null};
-    put(c).then(function(ok){cats.push(c);if(ok)toast('Saved on this phone');else alert('This cat could NOT be stored on this phone and will disappear when you close the app. Tap the backup button (top right) for help.');close();tab='list';render()});
+    put(c).then(function(ok){cats.push(c);if(ok){toast('Saved on this phone');sfx(720,'long')}else alert('This cat could NOT be stored on this phone and will disappear when you close the app. Tap the backup button (top right) for help.');close();tab='list';render()});
   });
   open([img,name,status,el('div',{class:'row'},[el('button',{class:'btn',text:'Cancel',on:{click:close}}),save])]);
   shrink(f).then(function(d){photo=d;img.src=d}).catch(function(){status.textContent='Could not read that photo. Try again.'});
@@ -253,6 +254,7 @@ function backupSheet(){
   open([el('h2',{text:'Your cats',style:'margin:4px 0 0'}),info,note,
     el('div',{class:'row'},[el('button',{class:'btn p',text:'Save a backup file',on:{click:exportBackup}})]),
     el('div',{class:'row'},[el('button',{class:'btn',text:'Restore from backup',on:{click:function(){$('#restorefile').value='';$('#restorefile').click()}}})]),
+    el('div',{class:'row'},[el('button',{class:'btn',text:'Meow sounds: '+(sget('cc-sfx')==='off'?'Off':'On'),on:{click:function(){sset('cc-sfx',sget('cc-sfx')==='off'?'on':'off');backupSheet()}}})]),
     el('div',{class:'row'},[el('button',{class:'btn',text:'Close',on:{click:close}})])]);
 }
 $('#saveBtn').addEventListener('click',backupSheet);
@@ -268,6 +270,49 @@ $('#restorefile').addEventListener('change',function(){
   r.readAsText(f);
 });
 try{if(navigator.storage&&navigator.storage.persist)navigator.storage.persist()}catch(e){}
+
+var ac=null,nb=null,musicOn=false;
+function ctx(){
+  if(!ac){var C=window.AudioContext||window.webkitAudioContext;if(!C)return null;ac=new C();nb=ac.createBuffer(1,ac.sampleRate,ac.sampleRate);var nd=nb.getChannelData(0);for(var q=0;q<nd.length;q++)nd[q]=Math.random()*2-1;}
+  if(ac.state==='suspended')ac.resume();
+  return ac;
+}
+function meow(pitch,when,vol,kind){
+  var a=ctx();if(!a)return;
+  var t=when||a.currentTime,p=pitch||650,v=vol||0.7;
+  var dur=kind==='short'?0.34:kind==='chirp'?0.22:0.9;
+  var o=a.createOscillator(),lfo=a.createOscillator(),lg=a.createGain();
+  o.type='sawtooth';
+  if(kind==='chirp'){
+    o.frequency.setValueAtTime(p*0.9,t);o.frequency.exponentialRampToValueAtTime(p*1.55,t+dur*0.6);o.frequency.exponentialRampToValueAtTime(p*1.3,t+dur);
+  }else{
+    o.frequency.setValueAtTime(p*0.8,t);o.frequency.exponentialRampToValueAtTime(p*1.3,t+dur*0.28);
+    o.frequency.exponentialRampToValueAtTime(p*1.0,t+dur*0.55);o.frequency.exponentialRampToValueAtTime(p*0.6,t+dur);
+  }
+  lfo.frequency.value=6;lg.gain.value=p*0.025;lfo.connect(lg);lg.connect(o.frequency);
+  var f1=a.createBiquadFilter(),f2=a.createBiquadFilter(),g1=a.createGain(),g2=a.createGain(),env=a.createGain();
+  f1.type='bandpass';f1.Q.value=5;f1.frequency.setValueAtTime(450,t);f1.frequency.exponentialRampToValueAtTime(700,t+dur*0.3);f1.frequency.exponentialRampToValueAtTime(950,t+dur);
+  f2.type='bandpass';f2.Q.value=5;f2.frequency.setValueAtTime(2000,t);f2.frequency.exponentialRampToValueAtTime(2800,t+dur*0.3);f2.frequency.exponentialRampToValueAtTime(1800,t+dur*0.7);f2.frequency.exponentialRampToValueAtTime(1300,t+dur);
+  g1.gain.value=1;g2.gain.value=0.7;
+  o.connect(f1);o.connect(f2);f1.connect(g1);f2.connect(g2);g1.connect(env);g2.connect(env);
+  var ns=a.createBufferSource(),ng=a.createGain();ns.buffer=nb;ns.loop=true;ng.gain.value=0.05;ns.connect(f2);
+  env.gain.setValueAtTime(0.0001,t);env.gain.exponentialRampToValueAtTime(v,t+Math.min(0.08,dur*0.25));
+  env.gain.setValueAtTime(v,t+dur*0.6);env.gain.exponentialRampToValueAtTime(0.0001,t+dur);
+  env.connect(a.destination);
+  o.start(t);lfo.start(t);ns.start(t);o.stop(t+dur+0.05);lfo.stop(t+dur+0.05);ns.stop(t+dur+0.05);
+}
+function sfx(p,k){if(sget('cc-sfx')==='off')return;try{meow(p,0,0.7,k)}catch(e){}}
+$('.brand').style.cursor='pointer';
+$('.brand').addEventListener('click',function(){var ks=['long','short','chirp','short'];meow(480+Math.random()*400,0,0.7,ks[Math.floor(Math.random()*ks.length)])});
+var song=$('#song');
+function setMusic(on){musicOn=on;var mb=$('#musicBtn');mb.textContent=on?'🎵':'🔇';mb.setAttribute('aria-pressed',String(on))}
+$('#musicBtn').addEventListener('click',function(){
+  if(!musicOn){
+    var pr=song.play();setMusic(true);toast('Meow song on');
+    if(pr&&pr.catch)pr.catch(function(){setMusic(false);toast('Could not play the song')});
+  }else{song.pause();setMusic(false);toast('Meow song off')}
+});
+document.addEventListener('visibilitychange',function(){if(document.hidden&&musicOn){song.pause();setMusic(false)}});
 openDB().then(function(d){db=d;return loadAll()}).then(function(a){cats=a.sort(function(x,y){return x.id-y.id});render()});
 render();
 })();
