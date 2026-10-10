@@ -54,17 +54,24 @@ html[data-theme="custom"],.sw[data-theme="custom"]{--bg:#1b1b1b;--ink:#fff;--car
 html[data-theme="custom"] h1,html[data-theme="custom"] .sub,html[data-theme="custom"] .brand,html[data-theme="custom"] .hint{text-shadow:0 1px 6px rgba(0,0,0,.7)}
 .top{display:flex;justify-content:space-between;align-items:center}
 .brand{font-weight:800;font-size:1.05rem}
-#themeBtn{width:44px;height:44px;border-radius:50%;border:1px solid var(--line);background:var(--card);font-size:1.3rem;cursor:pointer}
 .cat{box-shadow:0 3px 10px rgba(0,0,0,.1)}
 .swg{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-top:12px}
 .sw{height:88px;border-radius:14px;border:3px solid var(--line);background-color:var(--bg);background-image:var(--bgimg,none);background-size:var(--bgsize,auto);background-repeat:var(--bgrep,repeat);background-position:var(--bgpos,0 0);color:var(--ink);font:700 .95rem inherit;font-family:inherit;display:flex;align-items:flex-end;padding:8px;text-align:left;cursor:pointer}
 .sw span{background:var(--card);padding:2px 8px;border-radius:8px}
 .sw[aria-pressed=true]{border-color:var(--accent)}
+
+html[data-theme="fish"],.sw[data-theme="fish"]{--bg:#d9f2f0;--ink:#0f3d47;--card:#f2fbfa;--accent:#ff8a5c;--onaccent:#2a0f05;--mute:#4f7f86;--line:#b9e0dd;--bgimg:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cg fill='%231f8a9a' fill-opacity='.25'%3E%3Cg transform='translate%2834 34%29'%3E%3Cg%3E%3Cellipse cx='0' cy='0' rx='14' ry='8'/%3E%3Cpath d='M12 0L24 -8L24 8Z'/%3E%3Ccircle cx='-7' cy='-2' r='1.8' fill='%23d9f2f0'/%3E%3C/g%3E%3C/g%3E%3Cg transform='translate%2888 92%29 rotate%28180%29 scale%28.8%29'%3E%3Cg%3E%3Cellipse cx='0' cy='0' rx='14' ry='8'/%3E%3Cpath d='M12 0L24 -8L24 8Z'/%3E%3Ccircle cx='-7' cy='-2' r='1.8' fill='%23d9f2f0'/%3E%3C/g%3E%3C/g%3E%3C/g%3E%3C/svg%3E")}
+html[data-theme="yarn"],.sw[data-theme="yarn"]{--bg:#fde7ef;--ink:#4a1d33;--card:#fff6f9;--accent:#d6457f;--onaccent:#fff;--mute:#8a5a70;--line:#f3c9d9;--bgimg:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='130' height='130'%3E%3Cg fill='%23d6457f' fill-opacity='.26'%3E%3Cg transform='translate%2834 36%29'%3E%3Ccircle r='15'/%3E%3Cpath d='M-12 -6Q0 -14 12 -4M-14 4Q0 -6 14 6M-8 12Q2 4 10 12' stroke='%23fde7ef' stroke-width='1.6' fill='none' stroke-opacity='.8'/%3E%3Cpath d='M12 10Q30 18 24 34' stroke='%23d6457f' stroke-opacity='.3' stroke-width='2.5' fill='none' stroke-linecap='round'/%3E%3C/g%3E%3Cg transform='translate%2898 96%29 scale%28.8%29'%3E%3Ccircle r='15'/%3E%3Cpath d='M-12 -6Q0 -14 12 -4M-14 4Q0 -6 14 6M-8 12Q2 4 10 12' stroke='%23fde7ef' stroke-width='1.6' fill='none' stroke-opacity='.8'/%3E%3Cpath d='M12 10Q30 18 24 34' stroke='%23d6457f' stroke-opacity='.3' stroke-width='2.5' fill='none' stroke-linecap='round'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")}
+html[data-theme="tabby"],.sw[data-theme="tabby"]{--bg:#f6c27a;--ink:#4a2508;--card:#fff4e2;--accent:#b4440f;--onaccent:#fff;--mute:#7a4a22;--line:#e8b277;--bgimg:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='80' fill='none' stroke='%23c46a1e' stroke-opacity='.32' stroke-width='7' stroke-linecap='round'%3E%3Cpath d='M-5 12Q20 0 40 12T85 12'/%3E%3Cpath d='M-5 40Q20 28 40 40T85 40'/%3E%3Cpath d='M-5 68Q20 56 40 68T85 68'/%3E%3C/svg%3E")}
+html[data-theme="black"],.sw[data-theme="black"]{--bg:#1a1326;--ink:#f1e9ff;--card:#2a2040;--accent:#ffd24a;--onaccent:#241a00;--mute:#b3a3d6;--line:#3b2f58;--bgimg:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cg transform='translate%2836 38%29 scale%281.3%29'%3E%3Cpath d='M-16 4L-14 -18L-4 -10Q0 -11 4 -10L14 -18L16 4Q16 18 0 18Q-16 18 -16 4Z' fill='%233a2c58'/%3E%3Cellipse cx='-6' cy='4' rx='2.4' ry='3.4' fill='%23ffd24a' fill-opacity='.85'/%3E%3Cellipse cx='6' cy='4' rx='2.4' ry='3.4' fill='%23ffd24a' fill-opacity='.85'/%3E%3C/g%3E%3Cg transform='translate%28106 106%29'%3E%3Cpath d='M-16 4L-14 -18L-4 -10Q0 -11 4 -10L14 -18L16 4Q16 18 0 18Q-16 18 -16 4Z' fill='%233a2c58'/%3E%3Cellipse cx='-6' cy='4' rx='2.4' ry='3.4' fill='%23ffd24a' fill-opacity='.85'/%3E%3Cellipse cx='6' cy='4' rx='2.4' ry='3.4' fill='%23ffd24a' fill-opacity='.85'/%3E%3C/g%3E%3C/svg%3E")}
+#themeBtn,#saveBtn{width:44px;height:44px;border-radius:50%;border:1px solid var(--line);background:var(--card);font-size:1.3rem;cursor:pointer}
+.tb{display:flex;gap:8px}
+.toast{position:fixed;top:calc(16px + env(safe-area-inset-top,0px));left:50%;transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:10px 18px;border-radius:999px;font-weight:600;z-index:3000}
 </style>
 </head>
 <body>
 <main>
-  <div class="top"><span class="brand">🐾 Cat Catcher</span><button id="themeBtn" aria-label="Change background">🎨</button></div>
+  <div class="top"><span class="brand">🐾 Cat Catcher</span><span class="tb"><button id="saveBtn" aria-label="Backup and storage">💾</button><button id="themeBtn" aria-label="Change background">🎨</button></span></div>
   <h1 id="count">0 cats</h1>
   <p class="sub">Every cat you've found in town.</p>
   <div class="tabs" role="tablist">
@@ -76,6 +83,7 @@ html[data-theme="custom"] h1,html[data-theme="custom"] .sub,html[data-theme="cus
 <button class="fab" id="fab">Capture a cat</button>
 <input type="file" id="file" accept="image/*" capture="environment" hidden>
 <input type="file" id="bgfile" accept="image/*" hidden>
+<input type="file" id="restorefile" accept="application/json,.json" hidden>
 <div class="sheet" id="sheet"><div class="panel" id="panel"></div></div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
@@ -85,9 +93,18 @@ var $=function(s){return document.querySelector(s)};
 var cats=[],db=null,tab='list',lmap=null,watchId=null;
 
 function openDB(){return new Promise(function(res){try{var r=indexedDB.open('cat-catcher',1);r.onupgradeneeded=function(){r.result.createObjectStore('cats',{keyPath:'id'})};r.onsuccess=function(){res(r.result)};r.onerror=function(){res(null)}}catch(e){res(null)}})}
-function loadAll(){return new Promise(function(res){if(!db)return res([]);try{var q=db.transaction('cats').objectStore('cats').getAll();q.onsuccess=function(){res(q.result||[])};q.onerror=function(){res([])}}catch(e){res([])}})}
-function put(c){return new Promise(function(res){if(!db)return res(false);try{var t=db.transaction('cats','readwrite');t.objectStore('cats').put(c);t.oncomplete=function(){res(true)};t.onerror=function(){res(false)}}catch(e){res(false)}})}
-function rem(id){return new Promise(function(res){if(!db)return res();try{var t=db.transaction('cats','readwrite');t.objectStore('cats').delete(id);t.oncomplete=res;t.onerror=res}catch(e){res()}})}
+function lsAll(){try{return JSON.parse(sget('cc-ls')||'{}')}catch(e){return {}}}
+function lsPut(c){var o=lsAll();o[c.id]=c;try{localStorage.setItem('cc-ls',JSON.stringify(o));return true}catch(e){return false}}
+function lsDel(id){var o=lsAll();delete o[id];try{localStorage.setItem('cc-ls',JSON.stringify(o))}catch(e){}}
+function loadAll(){return new Promise(function(res){
+  function fin(a){var m={};a.forEach(function(c){m[c.id]=c});var o=lsAll();for(var k in o)m[o[k].id]=o[k];res(Object.keys(m).map(function(k){return m[k]}))}
+  if(!db)return fin([]);
+  try{var q=db.transaction('cats').objectStore('cats').getAll();q.onsuccess=function(){fin(q.result||[])};q.onerror=function(){fin([])}}catch(e){fin([])}})}
+function put(c){return new Promise(function(res){
+  function fb(){res(lsPut(c))}
+  if(!db)return fb();
+  try{var t=db.transaction('cats','readwrite');t.objectStore('cats').put(c);t.oncomplete=function(){res(true)};t.onerror=fb;t.onabort=fb}catch(e){fb()}})}
+function rem(id){return new Promise(function(res){lsDel(id);if(!db)return res();try{var t=db.transaction('cats','readwrite');t.objectStore('cats').delete(id);t.oncomplete=res;t.onerror=res}catch(e){res()}})}
 
 function el(tag,props,kids){var e=document.createElement(tag);for(var k in (props||{})){if(k==='text')e.textContent=props[k];else if(k==='on')for(var ev in props.on)e.addEventListener(ev,props.on[ev]);else e.setAttribute(k,props[k])}(kids||[]).forEach(function(c){e.appendChild(c)});return e}
 function fmt(t){try{return new Date(t).toLocaleDateString(undefined,{month:'short',day:'numeric',year:'numeric'})}catch(e){return ''}}
@@ -170,7 +187,7 @@ $('#file').addEventListener('change',function(){
   save.addEventListener('click',function(){
     if(!photo)return;stopLocate();
     var c={id:Date.now(),n:cats.length?Math.max.apply(0,cats.map(function(x){return x.n}))+1:1,name:name.value.trim()||'Unnamed cat',photo:photo,time:Date.now(),lat:loc.v?loc.v.lat:null,lng:loc.v?loc.v.lng:null,acc:loc.v?loc.v.acc:null};
-    put(c).then(function(ok){cats.push(c);if(!ok)alert('Saved for now, but this browser could not store it permanently.');close();tab='list';render()});
+    put(c).then(function(ok){cats.push(c);if(ok)toast('Saved on this phone');else alert('This cat could NOT be stored on this phone and will disappear when you close the app. Tap the backup button (top right) for help.');close();tab='list';render()});
   });
   open([img,name,status,el('div',{class:'row'},[el('button',{class:'btn',text:'Cancel',on:{click:close}}),save])]);
   shrink(f).then(function(d){photo=d;img.src=d}).catch(function(){status.textContent='Could not read that photo. Try again.'});
@@ -180,7 +197,7 @@ $('#t1').addEventListener('click',function(){tab='list';render()});
 $('#t2').addEventListener('click',function(){tab='map';render()});
 
 applyTheme();
-var THEMES=[{id:'meadow',name:'Meadow'},{id:'paws',name:'Paw prints'},{id:'faces',name:'Little cats'},{id:'night',name:'Midnight'},{id:'sunset',name:'Rooftop sunset'}];
+var THEMES=[{id:'meadow',name:'Meadow'},{id:'paws',name:'Paw prints'},{id:'faces',name:'Little cats'},{id:'night',name:'Midnight'},{id:'sunset',name:'Rooftop sunset'},{id:'tabby',name:'Tabby stripes'},{id:'fish',name:'Fish snacks'},{id:'yarn',name:'Yarn balls'},{id:'black',name:'Black cats'}];
 function sget(k){try{return localStorage.getItem(k)}catch(e){return null}}
 function sset(k,v){try{localStorage.setItem(k,v);return true}catch(e){return false}}
 function applyTheme(){
@@ -210,6 +227,38 @@ $('#bgfile').addEventListener('change',function(){
   var f=this.files&&this.files[0];if(!f)return;
   shrink(f,1000).then(function(d){if(sset('cc-bg',d)){sset('cc-theme','custom');themePicker();render()}else alert('That photo is too big to save as a background.')}).catch(function(){alert('Could not read that photo.')});
 });
+
+function toast(m){var t=el('div',{class:'toast',text:m});document.body.appendChild(t);setTimeout(function(){t.remove()},2200)}
+function exportBackup(){
+  if(!cats.length){toast('No cats to back up yet');return}
+  var blob=new Blob([JSON.stringify({app:'cat-catcher',v:1,cats:cats})],{type:'application/json'});
+  var name='cat-catcher-backup.json',file=null;
+  try{file=new File([blob],name,{type:'application/json'})}catch(e){}
+  if(file&&navigator.canShare&&navigator.canShare({files:[file]})){navigator.share({files:[file],title:'Cat Catcher backup'}).catch(function(){});return}
+  var a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;document.body.appendChild(a);a.click();setTimeout(function(){a.remove()},500);
+}
+function backupSheet(){
+  var info=el('p',{class:'meta',text:cats.length+(cats.length===1?' cat':' cats')+' saved on this phone. Storage: '+(db?'working':'limited')+'.'});
+  if(navigator.storage&&navigator.storage.persisted)navigator.storage.persisted().then(function(p){info.textContent+=p?' Protected from automatic cleanup.':' Not protected from automatic cleanup, so keep a backup.'});
+  var note=el('p',{class:'meta',text:'On iPhone, the Safari tab and the Home Screen icon keep separate collections. Use only the Home Screen icon. To move cats between them, save a backup in one and restore it in the other.'});
+  open([el('h2',{text:'Your cats',style:'margin:4px 0 0'}),info,note,
+    el('div',{class:'row'},[el('button',{class:'btn p',text:'Save a backup file',on:{click:exportBackup}})]),
+    el('div',{class:'row'},[el('button',{class:'btn',text:'Restore from backup',on:{click:function(){$('#restorefile').value='';$('#restorefile').click()}}})]),
+    el('div',{class:'row'},[el('button',{class:'btn',text:'Close',on:{click:close}})])]);
+}
+$('#saveBtn').addEventListener('click',backupSheet);
+$('#restorefile').addEventListener('change',function(){
+  var f=this.files&&this.files[0];if(!f)return;
+  var r=new FileReader();
+  r.onload=function(){try{
+    var d=JSON.parse(r.result),a=d.cats||[],have={};cats.forEach(function(c){have[c.id]=1});
+    var add=a.filter(function(c){return c&&c.id&&c.photo&&!have[c.id]}),p=Promise.resolve();
+    add.forEach(function(c){p=p.then(function(){return put(c)}).then(function(){cats.push(c)})});
+    p.then(function(){cats.sort(function(x,y){return x.id-y.id});toast(add.length+' restored');close();render()});
+  }catch(e){alert('That file is not a Cat Catcher backup.')}};
+  r.readAsText(f);
+});
+try{if(navigator.storage&&navigator.storage.persist)navigator.storage.persist()}catch(e){}
 openDB().then(function(d){db=d;return loadAll()}).then(function(a){cats=a.sort(function(x,y){return x.id-y.id});render()});
 render();
 })();
